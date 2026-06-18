@@ -1,1 +1,134 @@
-/Users/kbgerman/Downloads/bigpaper-suche (4).html
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIG Paper Suche</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; padding: 16px; }
+.search-wrap { position: relative; margin-bottom: 12px; }
+.search-input { width: 100%; padding: 10px 16px 10px 40px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 15px; outline: none; }
+.search-input:focus { border-color: #aaa; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; color: #999; }
+.result { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 8px; border: 0.5px solid #e8e8e8; margin-bottom: 6px; cursor: pointer; text-decoration: none; background: #fff; transition: background 0.15s; }
+.result:hover { background: #f5f5f5; }
+.result-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+.result-title { font-size: 14px; font-weight: 500; color: #111; }
+.result-path { font-size: 12px; color: #888; margin-top: 2px; }
+.result-desc { font-size: 12px; color: #666; margin-top: 3px; }
+.no-result { font-size: 14px; color: #999; padding: 12px 0; text-align: center; }
+mark { background: #fff3b0; border-radius: 2px; padding: 0 1px; }
+</style>
+</head>
+<body>
+<div class="search-wrap">
+  <span class="search-icon">🔍</span>
+  <input class="search-input" type="text" id="search" placeholder="Stichwort suchen, z.B. Credits, Coaching..." autocomplete="off" />
+</div>
+<div id="results"></div>
+<script>
+const C = "https://app.notion.com/p/Wilkommen-bei-K-V-37302ecde595809fad29d8af372abe1e?source=copy_link#37c02ecde59580119220f8cd5c2feed6";
+const M = "https://app.notion.com/p/Wilkommen-bei-K-V-37302ecde595809fad29d8af372abe1e?source=copy_link#37c02ecde5958005ac29c38d341a4d86";
+const E = "https://app.notion.com/p/Wilkommen-bei-K-V-37302ecde595809fad29d8af372abe1e?source=copy_link#37c02ecde5958016a5ece07e8041cbbc";
+const F = "https://app.notion.com/p/Wilkommen-bei-K-V-37302ecde595809fad29d8af372abe1e?source=copy_link#37c02ecde59580288f4fd5f5ab8db5b9";
+const S = "https://app.notion.com/p/Wilkommen-bei-K-V-37302ecde595809fad29d8af372abe1e?source=copy_link#37c02ecde59580d9b4c5ff00232032a0";
+const R = "https://app.notion.com/p/Wilkommen-bei-K-V-37302ecde595809fad29d8af372abe1e?source=copy_link#37c02ecde59580668cf4dd52027fbc66";
+const D = "https://app.notion.com/p/Wilkommen-bei-K-V-37302ecde595809fad29d8af372abe1e?source=copy_link#37c02ecde5958028b5b6fad0d20b76fe";
+const T = "https://app.notion.com/p/Wilkommen-bei-K-V-37302ecde595809fad29d8af372abe1e?source=copy_link#37c02ecde5958049aa5ceb5462b56560";
+
+const entries = [
+  { title: "Jahresüberblick", path: "Curriculum", desc: "Überblick über das gesamte Studienjahr", url: C, icon: "📅" },
+  { title: "Herbstsemester", path: "Curriculum", desc: "Module und Inhalte im Herbstsemester", url: C, icon: "🍂" },
+  { title: "Frühlingssemester", path: "Curriculum", desc: "Module und Inhalte im Frühlingssemester", url: C, icon: "🌸" },
+  { title: "Diplomjahr", path: "Curriculum", desc: "Ablauf und Anforderungen im Diplomjahr", url: C, icon: "🎓" },
+  { title: "Credits", path: "Curriculum", desc: "Kreditpunkte und Anforderungen", url: C, icon: "📊" },
+  { title: "Vollzeit-/Teilzeit-Modelle", path: "Curriculum", desc: "Studienmodelle und Zeitmodelle", url: C, icon: "⏱" },
+  { title: "Hauptmodule K++V", path: "Module", desc: "Plan, Praxis, Show", url: M, icon: "📦" },
+  { title: "Plan", path: "Module → Hauptmodule", desc: "Planungsmodul K++V", url: M, icon: "📋" },
+  { title: "Praxis", path: "Module → Hauptmodule", desc: "Praxismodul K++V", url: M, icon: "🛠" },
+  { title: "Show", path: "Module → Hauptmodule", desc: "Showmodul K++V", url: M, icon: "🎭" },
+  { title: "Wahlpflichtmodule", path: "Module", desc: "Tours, Theorien, Perspektiven, Positionen", url: M, icon: "📚" },
+  { title: "Tours", path: "Module → Wahlpflicht", desc: "Wahlpflichtmodul Tours", url: M, icon: "🗺" },
+  { title: "Theorien", path: "Module → Wahlpflicht", desc: "Wahlpflichtmodul Theorien", url: M, icon: "💭" },
+  { title: "Perspektiven", path: "Module → Wahlpflicht", desc: "Wahlpflichtmodul Perspektiven", url: M, icon: "🔭" },
+  { title: "Positionen", path: "Module → Wahlpflicht", desc: "Wahlpflichtmodul Positionen", url: M, icon: "📌" },
+  { title: "Methodenmodule", path: "Module", desc: "Symposium, Guest Professor", url: M, icon: "🔬" },
+  { title: "Symposium", path: "Module → Methoden", desc: "Symposiumsmodul", url: M, icon: "🎤" },
+  { title: "Guest Professor", path: "Module → Methoden", desc: "Gastprofessur im Studiengang", url: M, icon: "👤" },
+  { title: "Participation", path: "Module", desc: "Participationsmodul und Einschreibung", url: M, icon: "🤝" },
+  { title: "+Reflect", path: "Module → Interdisziplinär", desc: "Interdisziplinäres Modul", url: M, icon: "🪞" },
+  { title: "Ring- und Abendvorlesungen", path: "Module → Interdisziplinär", desc: "Vorlesungsreihen", url: M, icon: "🌙" },
+  { title: "+Colabor", path: "Module → Interdisziplinär", desc: "Kollaboratives Modul", url: M, icon: "🔗" },
+  { title: "+Focus", path: "Module → Offene Fachmodule", desc: "Offenes Fachmodul", url: M, icon: "🎯" },
+  { title: "ISA-Module", path: "Module", desc: "Credits und Einschreibung", url: M, icon: "🌍" },
+  { title: "Praktika", path: "Module", desc: "Praktikumsmöglichkeiten", url: M, icon: "💼" },
+  { title: "Austausch", path: "Module", desc: "Andere Studienrichtung HSLU, Partnerhochschule", url: M, icon: "✈️" },
+  { title: "Einschreibung K++V-Module", path: "Einschreibung", desc: "Anmeldung für K++V-Module", url: E, icon: "✍️" },
+  { title: "Einschreibung Wahlpflichtmodule", path: "Einschreibung", desc: "Anmeldung für Wahlpflichtmodule", url: E, icon: "✍️" },
+  { title: "Einschreibung Participation", path: "Einschreibung", desc: "Anmeldung für Participation", url: E, icon: "✍️" },
+  { title: "Letter of Intent", path: "Formate", desc: "Format Letter of Intent", url: F, icon: "📝" },
+  { title: "Jahresplaner", path: "Formate", desc: "Planung des Studienjahres", url: F, icon: "🗓" },
+  { title: "Kolloquium", path: "Formate", desc: "Kolloquiumsformat", url: F, icon: "🗣" },
+  { title: "Feedbackmethoden", path: "Formate", desc: "Methoden für Feedback", url: F, icon: "💬" },
+  { title: "Arbeitsgespräche", path: "Formate", desc: "Format Arbeitsgespräche", url: F, icon: "💬" },
+  { title: "Portfolio", path: "Formate", desc: "Portfolio-Format", url: F, icon: "🗂" },
+  { title: "Plenum", path: "Formate", desc: "Plenumformat", url: F, icon: "👥" },
+  { title: "Werkschau", path: "Formate", desc: "Abschlusspräsentation", url: F, icon: "🖼" },
+  { title: "Going public", path: "Formate", desc: "Format Going public", url: F, icon: "📢" },
+  { title: "All Inclusive Festival", path: "Formate", desc: "Festival-Format", url: F, icon: "🎪" },
+  { title: "Work Life Care Art", path: "Support-Angebote", desc: "Beratung zu Studium und Leben", url: S, icon: "🤝" },
+  { title: "Coaching", path: "Support-Angebote", desc: "Persönliches Coaching", url: S, icon: "💡" },
+  { title: "Helpdesk", path: "Support-Angebote", desc: "Technische und administrative Hilfe", url: S, icon: "🛟" },
+  { title: "Fachstelle Diversity", path: "Support-Angebote", desc: "Anlaufstelle für Diversitätsfragen", url: S, icon: "🌈" },
+  { title: "Code of Conduct", path: "Support-Angebote", desc: "Verhaltensrichtlinien im Studiengang", url: S, icon: "📜" },
+  { title: "Barrierefreies Studieren", path: "Support-Angebote", desc: "Unterstützung bei Beeinträchtigungen", url: S, icon: "♿️" },
+  { title: "Psychologische Beratungsstelle", path: "Support-Angebote", desc: "Psychologische Unterstützung", url: S, icon: "🧠" },
+  { title: "Räume & Werkstätten", path: "Räume & Werkstätten", desc: "Räume und Werkstätten im Studiengang", url: R, icon: "🏛" },
+  { title: "Signal-Chats", path: "Digitale Tools", desc: "Kommunikation über Signal", url: D, icon: "💬" },
+  { title: "Linkstack", path: "Digitale Tools", desc: "Sammlung wichtiger Links", url: D, icon: "🔗" },
+  { title: "Agenda", path: "Digitale Tools", desc: "Terminkalender und Agenda", url: D, icon: "📅" },
+  { title: "Ilias", path: "Digitale Tools", desc: "Lernplattform der HSLU", url: D, icon: "💻" },
+  { title: "Instagram", path: "Digitale Tools", desc: "Social Media Kanal K++V", url: D, icon: "📸" },
+  { title: "HSLU-Webseite", path: "Digitale Tools", desc: "Offizielle Website der HSLU", url: D, icon: "🌐" },
+  { title: "Studiengangsleitung", path: "Team", desc: "Leitung des Studiengangs K++V", url: T, icon: "👤" },
+  { title: "Dozierende", path: "Team", desc: "Lehrpersonen im Studiengang", url: T, icon: "👥" },
+  { title: "Künstlerische Mitarbeitende", path: "Team", desc: "Künstlerische Mitarbeit", url: T, icon: "🎨" },
+  { title: "Assistierende", path: "Team", desc: "Assistenz im Studiengang", url: T, icon: "🤲" },
+];
+
+function highlight(text, query) {
+  if (!query) return text;
+  const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return text.replace(re, '<mark>$1</mark>');
+}
+
+function render(query) {
+  const q = query.trim().toLowerCase();
+  const container = document.getElementById('results');
+  if (!q) { container.innerHTML = ''; return; }
+  const filtered = entries.filter(e =>
+    e.title.toLowerCase().includes(q) ||
+    e.path.toLowerCase().includes(q) ||
+    e.desc.toLowerCase().includes(q)
+  );
+  if (!filtered.length) {
+    container.innerHTML = '<div class="no-result">Kein Ergebnis gefunden.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(e => `
+    <a class="result" href="${e.url}" target="_blank">
+      <span class="result-icon">${e.icon}</span>
+      <div>
+        <div class="result-title">${highlight(e.title, query.trim())}</div>
+        <div class="result-path">${e.path}</div>
+        <div class="result-desc">${e.desc}</div>
+      </div>
+    </a>
+  `).join('');
+}
+
+document.getElementById('search').addEventListener('input', e => render(e.target.value));
+</script>
+</body>
+</html>
